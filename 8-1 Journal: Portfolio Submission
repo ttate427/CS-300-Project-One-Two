@@ -1,0 +1,137 @@
+Project One: Run-Time and Memory Analysis of Data Structures
+Vector :
+A vector is easy to use and doesn’t take up much memory, which makes it good for small sets of data. The downside is that finding one course takes longer because it has to look through each item one by one. Also, if we need the courses in order, the vector has to be sorted each time, which adds extra work.
+Hash Table :
+A hash table is very fast when looking up courses, usually almost instant. The trade-off is that it uses a little more memory than a vector. Another drawback is that the data isn’t automatically in order, so if we want a sorted list, we need to sort the keys separately. Luckily, sorting them isn’t too difficult for this project.
+Binary Search Tree :
+A BST keeps courses in order automatically, so it’s great for printing a full sorted list without extra steps. It also usually finds and adds courses quickly. However, if the tree becomes unbalanced, it can slow down and act more like a vector. To prevent this, more complex versions of BSTs can be used, but those are harder to build and take up more memory.
+Project Two: Working Code
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <string>
+#include <map>
+#include <vector>
+#include <algorithm>
+#include <cctype>
+using namespace std;
+// Course structure to hold course details
+struct Course {
+    string courseNumber;
+    string courseTitle;
+    vector<string> prerequisites;
+};
+// Function to split a string by delimiter
+vector<string> split(const string& line, char delimiter) {
+    vector<string> tokens;
+    string token;
+    istringstream tokenStream(line);
+    while (getline(tokenStream, token, delimiter)) {
+        tokens.push_back(token);
+    }
+    return tokens;
+}
+// Convert string to uppercase for consistent comparison
+string toUpperCase(const string& str) {
+    string result = str;
+    transform(result.begin(), result.end(), result.begin(),
+        [](unsigned char c) { return toupper(c); });
+    return result;
+}
+// Function to load courses from file into map
+void loadCourses(const string& fileName, map<string, Course>& courses) {
+    ifstream file(fileName);
+    if (!file.is_open()) {
+        cout << "Error: Could not open file '" << fileName << "'." << endl;
+        return;
+    }
+    string line;
+    while (getline(file, line)) {
+        vector<string> tokens = split(line, ',');
+        if (tokens.size() < 2) continue; // skip invalid lines
+        Course course;
+        course.courseNumber = toUpperCase(tokens[0]);
+        course.courseTitle = tokens[1];
+        // Add prerequisites if available
+        for (size_t i = 2; i < tokens.size(); i++) {
+            course.prerequisites.push_back(toUpperCase(tokens[i]));
+        }
+        courses[course.courseNumber] = course;
+    }
+    file.close();
+    cout << "Courses loaded successfully." << endl;
+}
+// Function to print all courses sorted alphanumerically
+void printCourseList(const map<string, Course>& courses) {
+    if (courses.empty()) {
+        cout << "No courses loaded. Please load a file first." << endl;
+        return;
+    }
+    cout << "\nHere is a sample schedule:" << endl;
+    for (const auto& entry : courses) {
+        cout << entry.first << ", " << entry.second.courseTitle << endl;
+    }
+}
+// Function to print details of a specific course
+void printCourseInfo(const map<string, Course>& courses, const string& courseNumber) {
+    string searchKey = toUpperCase(courseNumber);
+    auto it = courses.find(searchKey);
+    if (it == courses.end()) {
+        cout << "Course '" << courseNumber << "' not found." << endl;
+        return;
+    }
+    const Course& course = it->second;
+    cout << "\n" << course.courseNumber << ", " << course.courseTitle << endl;
+    if (course.prerequisites.empty()) {
+        cout << "Prerequisites: None" << endl;
+    }
+    else {
+        cout << "Prerequisites: ";
+        for (size_t i = 0; i < course.prerequisites.size(); i++) {
+            cout << course.prerequisites[i];
+            if (i < course.prerequisites.size() - 1) cout << ", ";
+        }
+        cout << endl;
+    }
+}
+// Main menu driver
+int main() {
+    map<string, Course> courses;
+    string fileName;
+    int choice = 0;
+    cout << "Welcome to the course planner." << endl;
+    while (choice != 9) {
+        cout << "\n1. Load Data Structure." << endl;
+        cout << "2. Print Course List." << endl;
+        cout << "3. Print Course." << endl;
+        cout << "9. Exit" << endl;
+        cout << "What would you like to do? ";
+        cin >> choice;
+        switch (choice) {
+        case 1: {
+            cout << "Enter file name to load: ";
+            cin >> fileName;
+            loadCourses(fileName, courses);
+            break;
+        }
+        case 2:
+            printCourseList(courses);
+            break;
+        case 3: {
+            string courseNumber;
+            cout << "What course do you want to know about? ";
+            cin >> courseNumber;
+            printCourseInfo(courses, courseNumber);
+            break;
+        }
+        case 9:
+            cout << "Thank you for using the course planner!" << endl;
+            break;
+        default:
+            cout << choice << " is not a valid option." << endl;
+        }
+    }
+    return 0;
+}
+
+
